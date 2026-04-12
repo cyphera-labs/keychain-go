@@ -9,6 +9,7 @@ import (
 
 	kms "cloud.google.com/go/kms/apiv1"
 	"cloud.google.com/go/kms/apiv1/kmspb"
+	gax "github.com/googleapis/gax-go/v2"
 )
 
 // GcpKmsProvider resolves keys using GCP Cloud KMS.
@@ -22,7 +23,7 @@ type GcpKmsProvider struct {
 
 // GcpKmsEncryptAPI is the subset of the GCP KMS client we need, enabling test mocks.
 type GcpKmsEncryptAPI interface {
-	Encrypt(ctx context.Context, req *kmspb.EncryptRequest) (*kmspb.EncryptResponse, error)
+	Encrypt(ctx context.Context, req *kmspb.EncryptRequest, opts ...gax.CallOption) (*kmspb.EncryptResponse, error)
 }
 
 // NewGcpKmsProvider creates a GCP Cloud KMS key provider.

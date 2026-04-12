@@ -67,7 +67,7 @@ func (p *AzureKvProvider) wrapNewKey(ref string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to generate random key: %w", err)
 	}
 
-	alg := azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
+	alg := azkeys.EncryptionAlgorithmRSAOAEP
 	_, err = client.WrapKey(context.Background(), p.keyName, "", azkeys.KeyOperationParameters{
 		Algorithm: &alg,
 		Value:     plaintext,
