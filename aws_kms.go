@@ -1,3 +1,5 @@
+//go:build aws
+
 package keychain
 
 import (
@@ -6,10 +8,26 @@ import (
 	"sync"
 	"time"
 
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 )
+
+func init() {
+	RegisterFactory("aws-kms", func(cfg map[string]string) (KeyProvider, error) {
+		arn := cfg["arn"]
+		region := cfg["region"]
+		if region == "" {
+			region = os.Getenv("AWS_REGION")
+		}
+		if region == "" {
+			region = "us-east-1"
+		}
+		return NewAwsKmsProvider(arn, region, cfg["endpoint"]), nil
+	})
+}
 
 // AwsKmsProvider resolves keys using AWS KMS GenerateDataKey.
 // Each resolved ref gets an AES-256 data key generated via the configured

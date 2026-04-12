@@ -1,3 +1,5 @@
+//go:build gcp
+
 package keychain
 
 import (
@@ -11,6 +13,12 @@ import (
 	"cloud.google.com/go/kms/apiv1/kmspb"
 	gax "github.com/googleapis/gax-go/v2"
 )
+
+func init() {
+	RegisterFactory("gcp-kms", func(cfg map[string]string) (KeyProvider, error) {
+		return NewGcpKmsProvider(cfg["resource"]), nil
+	})
+}
 
 // GcpKmsProvider resolves keys using GCP Cloud KMS.
 // Generates a random 32-byte AES key locally, wraps it via KMS Encrypt,

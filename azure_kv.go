@@ -1,3 +1,5 @@
+//go:build azure
+
 package keychain
 
 import (
@@ -10,6 +12,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 )
+
+func init() {
+	RegisterFactory("azure-kv", func(cfg map[string]string) (KeyProvider, error) {
+		vaultURL := fmt.Sprintf("https://%s.vault.azure.net", cfg["vault"])
+		return NewAzureKvProvider(vaultURL, cfg["key"]), nil
+	})
+}
 
 // AzureKvProvider resolves keys using Azure Key Vault.
 // Generates a random 32-byte AES key locally, wraps it with Key Vault's
