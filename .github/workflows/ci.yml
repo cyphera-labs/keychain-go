@@ -1,16 +1,60 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 jobs:
-  test:
+  unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
       - run: go build ./...
       - run: go vet ./...
+      - run: go test ./... -run 'TestMemory|TestEnv|TestFile' -v
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      vault:
+        image: hashicorp/vault:1.18
+        ports: ["8200:8200"]
+        env:
+          VAULT_DEV_ROOT_TOKEN_ID: root
+          VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+        options: >-
+          --cap-add IPC_LOCK
+          --health-cmd "vault status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+      localstack:
+        image: localstack/localstack:3
+        ports: ["4566:4566"]
+        env:
+          SERVICES: kms
+        options: >-
+          --health-cmd "curl -sf http://localhost:4566/_localstack/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - run: go test ./... -tags aws -v
+        env:
+          VAULT_ADDR: http://localhost:8200
+          VAULT_TOKEN: root
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
