@@ -1,6 +1,6 @@
 module github.com/cyphera-labs/keychain-go
 
-go 1.22
+go 1.25.0
 
 require (
 	cloud.google.com/go/kms v1.26.0
