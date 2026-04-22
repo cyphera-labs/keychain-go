@@ -3,7 +3,7 @@ on:
   push:
     tags: ['v*']
 jobs:
-  test:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -12,3 +12,15 @@ jobs:
           go-version: "1.21"
       - run: go build ./...
       - run: go vet ./...
+      - run: go test ./... -v
+      - name: Register with Go Module Proxy
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "Registering $VERSION with proxy.golang.org..."
+          curl -sf "https://proxy.golang.org/github.com/cyphera-labs/keychain-go/@v/${VERSION}.info" || true
+          echo ""
+          echo "Requesting pkg.go.dev indexing..."
+          curl -sf "https://proxy.golang.org/github.com/cyphera-labs/keychain-go/@v/${VERSION}.mod" || true
+          echo ""
+          echo "Done. Package will appear at:"
+          echo "  https://pkg.go.dev/github.com/cyphera-labs/keychain-go@${VERSION}"
